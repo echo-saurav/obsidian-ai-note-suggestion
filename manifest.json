@@ -1,0 +1,11 @@
+{
+	"id": "ai-note-suggestion",
+	"name": "AI Note Suggestion",
+	"version": "0.0.1",
+	"minAppVersion": "0.15.0",
+	"description": "This plugin shows semantically related notes and filer notes by tags using power of A.I (Vector search)",
+	"author": "echo-saurav",
+	"authorUrl": "",
+	"fundingUrl": "",
+	"isDesktopOnly": false
+}

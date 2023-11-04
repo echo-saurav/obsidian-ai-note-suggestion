@@ -1,0 +1,32 @@
+{
+	"name": "match-up",
+	"version": "1.0.0",
+	"description": "Its a plugin that shows semantically related notes using power of A.I",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"version": "node version-bump.mjs && git add manifest.json versions.json"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^16.11.6",
+		"@typescript-eslint/eslint-plugin": "5.29.0",
+		"@typescript-eslint/parser": "5.29.0",
+		"builtin-modules": "3.3.0",
+		"esbuild": "0.17.3",
+		"obsidian": "latest",
+		"tslib": "2.4.0",
+		"typescript": "4.7.4"
+	},
+	"dependencies": {
+		"chart.js": "^4.4.0",
+		"chartjs-plugin-zoom": "^2.0.1",
+		"marked": "^9.1.2",
+		"md-2-json": "^2.0.0",
+		"weaviate-ts-client": "^1.5.0",
+		"yaml": "^2.3.3"
+	}
+}
