@@ -1,4 +1,4 @@
-import MyPlugin, { SUGGESTION_EXTENSION_ID } from "main";
+import MyPlugin, { SUGGESTION_EXTENSION_ID, WeaviateFile } from "main";
 import { ItemView, MarkdownView, WorkspaceLeaf } from "obsidian";
 export const VIEW_TYPE = "similar-notes";
 
@@ -76,7 +76,7 @@ export class SimilarNotesPane extends ItemView {
                 this.listEl.empty()                
                 this.listEl.createEl("h5",{text:"Suggestions",cls:"similar_head"})
                 
-                const fileFromDatabase = similarFiles['data']['Get'][this.myPlugin.settings.weaviateClass]
+                const fileFromDatabase:WeaviateFile[] = similarFiles['data']['Get'][this.myPlugin.settings.weaviateClass]
   
                 //
                 const view = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -85,9 +85,9 @@ export class SimilarNotesPane extends ItemView {
 
                 cleanFileList.map(file=>{
 
-                      const file_name = file['filename']
-                      const file_path = file['path']
-                      const file_similarity = this.myPlugin.convertToSimilarPercentage(file["_additional"]["distance"])
+                      const file_name = file.filename
+                      const file_path = file.path
+                      const file_similarity = this.myPlugin.convertToSimilarPercentage(file._additional.distance)
                       const opacity_val = parseFloat(file_similarity)*.01
                       const itemElement= this.listEl.createEl("div",{cls:"similar_item"})
   

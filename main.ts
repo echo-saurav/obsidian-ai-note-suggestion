@@ -3,7 +3,7 @@ import {  MarkdownView, Plugin,  SuggestModal, Notice, parseYaml, TFile } from '
 import { SimilarNotesPane } from 'SimilarNotesPane';
 import VectorHelper from 'vec';
 import { MatchUpSettingTab } from 'SettingTab';
-import { GRAPH_VIEW_TYPE, GraphSimilarView } from 'graph';
+// import { GRAPH_VIEW_TYPE, GraphSimilarView } from 'graph';
 import { GetSuggestionExtension } from 'SuggestionExtension';
 
 export const VIEW_TYPE = "similar-notes";
@@ -17,6 +17,18 @@ interface CodeYaml {
 	showPercentage:boolean
 	autoCut: number
 	distanceLimit: number
+}
+export interface WeaviateFile{
+	content: string
+	metadata: string
+	tags: string[]
+	path: string
+	filename: string
+	mtime: string
+	_additional:{
+		id:string
+		distance: number	
+	}
 }
 
 interface MyPluginSettings {
@@ -56,10 +68,10 @@ export default class MyPlugin extends Plugin {
 			VIEW_TYPE,
 			(leaf) => new SimilarNotesPane(leaf, this)
 		);
-		this.registerView(
-			GRAPH_VIEW_TYPE,
-			(leaf) => new GraphSimilarView(leaf, this)
-		);
+		// this.registerView(
+		// 	GRAPH_VIEW_TYPE,
+		// 	(leaf) => new GraphSimilarView(leaf, this)
+		// );
 		this.addSettingTab(new MatchUpSettingTab(this.app, this));
 		this.statusBarItemEl = this.addStatusBarItem()
 		this.statusBarItemEl.setText('Starting...');
@@ -119,7 +131,7 @@ export default class MyPlugin extends Plugin {
 		// delete old file from database _____________________________________________________
 		if (countOnDatabase > count) {
 			console.log(`Something has been deleted on local, ${countOnDatabase}, ${count}`)
-			const weaviateFiles = await this.vectorHelper.readAllPaths()
+			const weaviateFiles:WeaviateFile[] = await this.vectorHelper.readAllPaths()
 			const extraFiles = this.findExtraFiles(weaviateFiles, files)
 
 			extraFiles.map(extra => {
@@ -144,7 +156,8 @@ export default class MyPlugin extends Plugin {
 		}
 	}
 
-	findExtraFiles(weaviateFiles, localFiles: TFile[]) {
+
+	findExtraFiles(weaviateFiles:WeaviateFile[], localFiles: TFile[]) {
 		console.log("weaviate", weaviateFiles)
 		const extraFiles = weaviateFiles.filter((weaviateFile) => !localFiles.some((file) => file.path === weaviateFile["path"]));
 		return extraFiles
@@ -153,21 +166,22 @@ export default class MyPlugin extends Plugin {
 	registerEvents() {
 
 		this.registerEvent(this.app.vault.on('create', (f) => {
-			this.app.vault.cachedRead(f).then(content => {
+			this.app.vault.cachedRead(f as TFile).then(content => {
+				
 				if (content) {
 					console.log(`create: ${f.path}`)
-					this.vectorHelper.onUpdateFile(content, f.path, f.name, f.stat.mtime)
+					this.vectorHelper.onUpdateFile(content, f.path, f.name, (f as TFile).stat.mtime)
 				}
 			})
 		}))
 
 		this.registerEvent(this.app.vault.on('modify', (f) => {
-			this.app.vault.cachedRead(f).then(content => {
+			this.app.vault.cachedRead(f as TFile).then(content => {
 
 
 				if (content) {
 					console.log(`update: ${f.path}`)
-					this.vectorHelper.onUpdateFile(content, f.path, f.name, f.stat.mtime)
+					this.vectorHelper.onUpdateFile(content, f.path, f.name, (f as TFile).stat.mtime)
 				} else {
 					console.log(`delete file on update: ${f.path}`)
 					this.vectorHelper.onDeleteFile(f.path)
@@ -176,10 +190,10 @@ export default class MyPlugin extends Plugin {
 		}))
 
 		this.registerEvent(this.app.vault.on('rename', (f, oldPath) => {
-			this.app.vault.cachedRead(f).then(content => {
+			this.app.vault.cachedRead(f as TFile).then(content => {
 				if (content) {
 					console.log(`rename: ${f.path}`)
-					this.vectorHelper.onRename(content, f.path, f.name, f.stat.mtime, oldPath)
+					this.vectorHelper.onRename(content, f.path, f.name, (f as TFile).stat.mtime, oldPath)
 				}
 			})
 
@@ -240,12 +254,12 @@ export default class MyPlugin extends Plugin {
 						return
 					}
 					// listEl.createEl("h5",{text:"Suggestions",cls:"similar_head"})  
-					const fileFromDatabase = similarFiles['data']['Get'][this.settings.weaviateClass]
+					const fileFromDatabase:WeaviateFile[] = similarFiles['data']['Get'][this.settings.weaviateClass]
 
 
 					const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 					const currentFilePath = view?.file?.path
-					const cleanFileList = fileFromDatabase.filter(item => currentFilePath && currentFilePath != item.path)
+					const cleanFileList:WeaviateFile[] = fileFromDatabase.filter(item => currentFilePath && currentFilePath != item.path)
 
 					if (cleanFileList.length === 0) {
 						el.createEl('small', { text: "Match up: No file matches!", cls: "empty_match" })
@@ -253,9 +267,9 @@ export default class MyPlugin extends Plugin {
 
 					const listEl = el.createEl('ul', { cls: "similar_list_parent" })
 					cleanFileList.map(file => {
-
-						const file_name = file['filename']
-						const file_similarity = this.convertToSimilarPercentage(file["_additional"]["distance"])
+						
+						const file_name = file.filename
+						const file_similarity = this.convertToSimilarPercentage(file._additional.distance)
 						
 						const i = listEl.createEl("li")
 						
@@ -263,11 +277,11 @@ export default class MyPlugin extends Plugin {
 
 						const itemElement = i.createEl("a", {
 							"text": showPercentage? `${file_name} - ${file_similarity}`: `${file_name}`,
-							"href": file['filepath'] 
+							"href": file.path
 							})
 
 						itemElement.addEventListener('click', (event: MouseEvent) => {
-							this.focusFile(file['path'])
+							this.focusFile(file.path)
 						});
 
 						itemElement.addEventListener('mouseenter',(event)=>{
@@ -276,8 +290,8 @@ export default class MyPlugin extends Plugin {
 								event:event,
 								hoverParent: itemElement.parentElement,
 								targetEl: itemElement,
-								linktext: file['filename'],
-								sourcePath: file['path']
+								linktext: file.filename,
+								sourcePath: file.path
 							})
 						})
 
@@ -310,10 +324,10 @@ export default class MyPlugin extends Plugin {
 		);
 
 	}
-	async activeBigView() {
-		const leaf = this.app.workspace.getLeaf("tab")
-		leaf.setViewState({ "type": GRAPH_VIEW_TYPE, active: true })
-	}
+	// async activeBigView() {
+	// 	const leaf = this.app.workspace.getLeaf("tab")
+	// 	leaf.setViewState({ "type": GRAPH_VIEW_TYPE, active: true })
+	// }
 
 	focusFile(filePath: string, shouldSplit = false) {
 		const targetFile = this.app.vault
@@ -349,8 +363,13 @@ export default class MyPlugin extends Plugin {
 
 
 	async readFileWithPath(path: string) {
-		const file: TFile = this.app.vault.getAbstractFileByPath(path)
-		return this.app.vault.cachedRead(file)
+		const absFile = this.app.vault.getAbstractFileByPath(path)
+		if(absFile){
+			const file: TFile = absFile as TFile
+			return this.app.vault.cachedRead(file)
+		}else{
+			return ""
+		}
 	}
 
 

@@ -5,7 +5,7 @@ import {
     ViewPlugin
 
 } from "@codemirror/view";
-import MyPlugin, { SUGGESTION_EXTENSION_ID } from "main";
+import MyPlugin, { SUGGESTION_EXTENSION_ID, WeaviateFile } from "main";
 import { MarkdownView ,editorInfoField} from "obsidian";
 
 
@@ -98,14 +98,14 @@ ViewPlugin.fromClass(class SuggExtension implements PluginValue {
             .then(similarFiles=>{
               if(!similarFiles){return}
               console.log("sugg ex similarFiles",similarFiles)
-              const fileFromDatabase = similarFiles['data']['Get'][app.settings.weaviateClass]
+              const fileFromDatabase:WeaviateFile[] = similarFiles['data']['Get'][app.settings.weaviateClass]
 
             //   //
             // const view = app.app.workspace.getActiveViewOfType(MarkdownView);
             // const currentFilePath = view?.file?.path
         
             this.el.empty()
-            const cleanFileList = fileFromDatabase.filter(item=>currentFilePath && currentFilePath != item.path)
+            const cleanFileList:WeaviateFile[] = fileFromDatabase.filter(item=>currentFilePath && currentFilePath != item.path)
 
             if(cleanFileList.length>0){
                 this.el.createEl("p",{"text":`Similar notes:`,cls:"suggestion_on_note_item_text"})
@@ -117,13 +117,13 @@ ViewPlugin.fromClass(class SuggExtension implements PluginValue {
 
             cleanFileList.map(file=>{
 
-                const file_name = file['filename']
-                const file_similarity = app.convertToSimilarPercentage(file["_additional"]["distance"])
+                const file_name = file.filename
+                const file_similarity = app.convertToSimilarPercentage(file._additional.distance)
                 const opacity_val = parseFloat(file_similarity)*.01
                 // const itemElement= this.el.createEl("p",{cls:"suggestion_on_note_item"})
 
                 // const itemElement= this.el.createEl("p",{text:file_name,cls:"suggestion_on_note_item"})
-                const itemElement= this.el.createEl("a",{"text":file_name,"href":file['filepath'],cls:"suggestion_on_note_item"})
+                const itemElement= this.el.createEl("a",{"text":file_name,"href":file.path,cls:"suggestion_on_note_item"})
                 // itemElement.createEl("p",{text:file_similarity,cls:"similar_percent"})
                 itemElement.style.opacity = `${opacity_val}`
                 

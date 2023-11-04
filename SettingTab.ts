@@ -60,7 +60,7 @@ export class MatchUpSettingTab extends PluginSettingTab {
 			.setPlaceholder("ex: 70 ")
 			.setValue(`${this.plugin.settings.distanceLimit}`)
 			.onChange(async (value) => {
-				let newval = value
+				let newval = parseFloat(value)
 				if(parseFloat(value)>2){
 					t.setValue("2")
 					newval=2
@@ -68,7 +68,7 @@ export class MatchUpSettingTab extends PluginSettingTab {
 					t.setValue("0")
 					newval=0
 				}
-				this.plugin.settings.distanceLimit = parseFloat(newval);
+				this.plugin.settings.distanceLimit = newval
 				await this.plugin.saveSettings();
 			}));
 

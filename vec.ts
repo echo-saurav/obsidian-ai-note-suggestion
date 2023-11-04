@@ -1,5 +1,5 @@
-import MyPlugin from "main"
-import { Notice } from "obsidian"
+import MyPlugin, { WeaviateFile } from "main"
+import { Notice, parseYaml } from "obsidian"
 import weaviate, { WeaviateClient, generateUuid5 } from "weaviate-ts-client"
 
 
@@ -193,7 +193,7 @@ export default class VectorHelper {
             .withFields(classProperties.join(' ') + ' _additional { id }')
             .withLimit(this.limit).do();
 
-        const files: Array<object> = query['data']['Get'][this.plugin.settings.weaviateClass]
+        const files: WeaviateFile[] = query['data']['Get'][this.plugin.settings.weaviateClass]
         return files
 
     }
@@ -390,36 +390,36 @@ export default class VectorHelper {
         }
     }
 
-    objectToArray(obj) {
-        const result = [];
-        if (!obj || obj.length === 0) {
-            return result
-        }
+    // objectToArray(obj:object) {
+    //     const result = [];
+    //     if (!obj || (obj as Array<string>).length === 0) {
+    //         return []
+    //     }
 
-        for (const key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                // Skip the "tags" key
-                if (key === 'tags') {
-                    continue;
-                }
+    //     for (const key in obj) {
+    //         if (obj.hasOwnProperty(key)) {
+    //             // Skip the "tags" key
+    //             if (key === 'tags') {
+    //                 continue;
+    //             }
 
-                let value = obj[key];
+    //             let value = obj[key];
 
-                if (value) {
-                    if (value.length === 1) {
-                        value = value[0];
-                    }
-                    result.push({ name: key, value });
-                }
-            }
-        }
+    //             if (value) {
+    //                 if (value.length === 1) {
+    //                     value = value[0];
+    //                 }
+    //                 result.push({ name: key, value });
+    //             }
+    //         }
+    //     }
 
-        return result;
-    }
+    //     return result;
+    // }
 
 
     getAllTags(inputString: string) {
-        const yaml = this.extractYAMLWithoutDashes(inputString)
+        const yaml = parseYaml( this.extractYAMLWithoutDashes(inputString))
         const yamlTags: Array<string> = yaml["tags"] ? yaml["tags"] : []
 
         const regex = /#(\w+)/g;
