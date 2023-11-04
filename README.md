@@ -7,6 +7,10 @@
 - **Related Notes:** Discover related notes that you might have missed, enhancing your note-taking context.
 - **Tag Filtering:** If you still prefer using tags, you can filter notes by tags as well.
 
+![](images/1.png)
+![](images/2.png)
+![](images/3.png)
+
 ## Setting Up AI Note Suggestion
 
 To use the AI Note Suggestion plugin, you'll need to set up [Weaviate](https://weaviate.io/), an AI vector search engine. We recommend using [Docker Compose](https://docs.docker.com/compose/) for an easier setup. You can also use weaviate cloud service if you don't want to use your local machine as a server. Here are the steps to get started:
