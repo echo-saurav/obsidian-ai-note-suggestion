@@ -102,3 +102,5 @@ autoCut: 2
 - [ ] add a search command to search by similar text
 - [ ] show status on every events (update,sync etc)
 
+
+

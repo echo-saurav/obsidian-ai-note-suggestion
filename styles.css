@@ -1,65 +1,110 @@
-.similar_file_name{
+.ai_heading{
+    margin-bottom: 10px;
+    text-overflow: ellipsis; 
+    white-space: nowrap;
+    overflow: hidden;  
+}
+.ai_title {
+    margin: 0;
+    display: inline;
+}
+
+.ai_title_path {
+    margin-left: 5px;
+    color: var(--color-accent-1);
+    display: inline;
+    
+}
+
+.ai_note_side_pane {
+    /* cursor: pointer; */
+    padding: 5px 5px;
+    text-overflow: ellipsis; 
+    white-space: nowrap;
+    overflow: hidden;  
+}
+
+.ai_note_side_pane .file_name {
     color: var(--color-accent-1);
     margin: 0;
 }
 
-.similar_percent{
+.ai_note_side_pane .file_percent {
     font-size: 10px;
     margin-top: 5px;
     margin-bottom: 0;
     font-style: italic;
 }
 
-.similar_item{
-    /* margin-top: 13px; */
-    cursor: pointer;
-    padding: 7px;
-}
-.similar_item:hover{
+.ai_note_side_pane:hover {
     background: var(--background-modifier-hover);
     border-radius: 5px;
 }
 
-.graph_canvas{
+
+
+/* old */
+
+.similar_file_name {
+    color: var(--color-accent-1);
+    margin: 0;
+}
+
+.similar_percent {
+    font-size: 10px;
+    margin-top: 5px;
+    margin-bottom: 0;
+    font-style: italic;
+}
+
+.similar_item {
+    /* margin-top: 13px; */
+    /* cursor: pointer; */
+    padding: 7px;
+}
+
+.similar_item:hover {
+    background: var(--background-modifier-hover);
+    border-radius: 5px;
+}
+
+.graph_canvas {
 
     /* width:100svw !important; */
     /* height:100svh !important; */
 }
 
-#top-text{
-    
-}
+#top-text {}
 
 
 /* code view */
 
-.similar_list_parent{
+.similar_list_parent {}
 
-}
-
-.similar_list_item{
+.similar_list_item {
     cursor: pointer;
-    color: var(--color-accent-1);   
-}
-
-
-.suggestion_on_note{
-    overflow-x: scroll;
-    white-space: nowrap;
-    padding-bottom: 15px;
-    width:  var(--file-line-width) !important;
-    margin: auto;
-
-}
-
-.suggestion_on_note_item{
-    display: inline;
-    margin: 5px;
-
     color: var(--color-accent-1);
 }
 
-.suggestion_on_note_item_text{
+
+.suggestion_on_note {
+    overflow-x: scroll;
+    white-space: nowrap;
+    padding-bottom: 15px;
+    width: var(--file-line-width) !important;
+    margin: auto;
+}
+.suggestion_on_note::-webkit-scrollbar {
+    display: none;
+}
+
+.suggestion_on_note_item {
+    display: inline;
+    margin: 5px;
+    color: var(--color-accent-1);
+}
+
+.suggestion_on_note_item_text {
     display: inline;
     margin: 0px;
     color: var(--text-muted);
@@ -67,10 +112,13 @@
 }
 
 
-.empty_match{
-    padding: 40px;
+.empty_match {
     font-style: italic;
     color: var(--text-muted);
-    width:  var(--file-line-width) !important;
+    width: var(--file-line-width) !important;
     /* background-color: antiquewhite; */
+}
+
+.empty_match_text{
+    margin: auto;
 }
