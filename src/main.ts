@@ -4,10 +4,10 @@ import { GetOnNoteViewExtension } from "./OnNoteViewExtension";
 import { GetSearchCodeBlock } from "./SearchCodeBlock";
 import { MySettings } from "./SettingTab";
 import VectorServer from "./VectorServer";
-
+import { SearchNoteModal } from "./SearchNoteModal";
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-    weaviateAddress: 'http://192.168.0.120:3636',
+    weaviateAddress: 'http://localhost:3636',
     weaviateClass: 'ObsidianVectors',
     limit: 30,
     inDocMatchNotes: true,
@@ -25,17 +25,17 @@ interface MyPluginSettings {
     autoCut: number
     distanceLimit: number
 }
-export interface WeaviateFile{
-	content: string
-	metadata: string
-	tags: string[]
-	path: string
-	filename: string
-	mtime: string
-	_additional:{
-		id:string
-		distance: number	
-	}
+export interface WeaviateFile {
+    content: string
+    metadata: string
+    tags: string[]
+    path: string
+    filename: string
+    mtime: string
+    _additional: {
+        id: string
+        distance: number
+    }
 }
 
 export const CODE_HOVER_ID = "AI_CODE_HOVER_ID"
@@ -77,19 +77,20 @@ export default class MyPlugin extends Plugin {
             )
             this.scanVault()
         })
+
     }
 
     async onCreate(file: TFile) {
         const fileContent = await this.app.vault.cachedRead(file as TFile)
         console.log("new file content", fileContent)
-        if(fileContent) this.vectorServer.onUpdateFile(fileContent,file.path,file.basename,file.stat.mtime)
+        if (fileContent) this.vectorServer.onUpdateFile(fileContent, file.path, file.basename, file.stat.mtime)
     }
 
     async onModify(file: TFile) {
         const fileContent = await this.app.vault.cachedRead(file as TFile)
         console.log("modify content", fileContent)
 
-        if(fileContent) this.vectorServer.onUpdateFile(fileContent,file.path,file.basename,file.stat.mtime)
+        if (fileContent) this.vectorServer.onUpdateFile(fileContent, file.path, file.basename, file.stat.mtime)
         else this.vectorServer.onDeleteFile(file.path)
 
     }
@@ -97,7 +98,7 @@ export default class MyPlugin extends Plugin {
     async onRename(file: TFile, oldPath: string) {
         console.log("old path", oldPath)
         console.log("new path", file.path)
-        this.vectorServer.onRename(file.path,file.basename,file.stat.mtime,oldPath)
+        this.vectorServer.onRename(file.path, file.basename, file.stat.mtime, oldPath)
     }
 
     async onDelete(file: TFile) {
@@ -117,26 +118,26 @@ export default class MyPlugin extends Plugin {
             const content = await this.app.vault.cachedRead(file)
             if (content) {
                 this.vectorServer.onUpdateFile(content, file.path, file.basename, file.stat.mtime)
-                console.log("update file", file)
+                // console.log("update file", file)
             }
 
         })
         // delete old file
         if (fileCountOnServer > files.length) {
-			const weaviateFiles:WeaviateFile[] = await this.vectorServer.readAllPaths()
-			const extraFiles = this.findExtraFiles(weaviateFiles, files)
-            extraFiles.map(extra=>{
+            const weaviateFiles: WeaviateFile[] = await this.vectorServer.readAllPaths()
+            const extraFiles = this.findExtraFiles(weaviateFiles, files)
+            extraFiles.map(extra => {
                 this.vectorServer.onDeleteFile(extra.path)
             })
         }
-        
+
     }
 
 
-    findExtraFiles(weaviateFiles:WeaviateFile[], localFiles: TFile[]) {		
-		const extraFiles = weaviateFiles.filter((weaviateFile) => !localFiles.some((file) => file.path === weaviateFile.path));
-		return extraFiles
-	}
+    findExtraFiles(weaviateFiles: WeaviateFile[], localFiles: TFile[]) {
+        const extraFiles = weaviateFiles.filter((weaviateFile) => !localFiles.some((file) => file.path === weaviateFile.path));
+        return extraFiles
+    }
 
     registerEvents() {
         console.log("register events")
@@ -193,8 +194,17 @@ export default class MyPlugin extends Plugin {
     registerCommands() {
         this.addCommand({
             id: 'open-note-suggestion',
-            name: 'Open note suggestions (Match up)',
+            name: 'Related note side pane',
             callback: () => { this.activeView() }
+        })
+
+        this.addCommand({
+            id: 'open-note-suggestion',
+            name: 'Search Related notes',
+            callback: () => {
+                new SearchNoteModal(this)
+                .open()
+            }
         })
     }
 

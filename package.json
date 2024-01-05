@@ -22,6 +22,7 @@
 		"typescript": "4.7.4"
 	},
 	"dependencies": {
+		"@xenova/transformers": "^2.13.4",
 		"chart.js": "^4.4.0",
 		"chartjs-plugin-zoom": "^2.0.1",
 		"marked": "^9.1.2",

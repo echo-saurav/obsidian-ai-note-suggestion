@@ -22,6 +22,14 @@ export default class VectorServer {
 
     }
 
+    async getSearchModalQueryNoteList(text:string){
+        return this.queryText(text,
+            [],
+            this.plugin.settings.limit,
+            this.plugin.settings.distanceLimit,
+            this.plugin.settings.autoCut)
+    }
+
 
     async getExtensionNoteList(file: TFile) {
         const content = await this.plugin.app.vault.cachedRead(file)
@@ -292,7 +300,7 @@ export default class VectorServer {
         // const yamlContent = this.objectToArray(this.extractYAMLWithoutDashes(content))
 
         if (doesExist && isUpdated) {
-            console.log("updating " + path)
+            // console.log("updating " + path)
             const newValue = {
                 content: cleanContent,
                 metadata: metadata,
