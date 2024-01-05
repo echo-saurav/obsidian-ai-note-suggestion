@@ -60,6 +60,7 @@ You can check out [weaviate's install guides](https://weaviate.io/developers/wea
     environment:
       ENABLE_CUDA: '0'
 ```
+here is the full compose file [compose.yml](https://github.com/echo-saurav/obsidian-ai-note-suggestion/blob/main/docker/compose.yml)
 
 2. In the directory where you saved the `docker-compose.yml` file, run the following command
 ```bash
