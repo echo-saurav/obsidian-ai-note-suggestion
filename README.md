@@ -6,10 +6,12 @@
 - **AI-Powered Suggestions:** The plugin suggests similar notes based on the content you're currently typing.
 - **Related Notes:** Discover related notes that you might have missed, enhancing your note-taking context.
 - **Tag Filtering:** If you still prefer using tags, you can filter notes by tags as well.
+- **Quick search:** Also you can quickly search anytime with command palette
 
 ![](images/1.png)
 ![](images/2.png)
 ![](images/3.png)
+![](images/4.png)
 
 ## Setting Up AI Note Suggestion
 
