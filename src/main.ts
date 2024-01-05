@@ -199,7 +199,7 @@ export default class MyPlugin extends Plugin {
         })
 
         this.addCommand({
-            id: 'open-note-suggestion',
+            id: 'open-search-note-suggestion',
             name: 'Search Related notes',
             callback: () => {
                 new SearchNoteModal(this)
