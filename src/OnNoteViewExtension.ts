@@ -1,11 +1,11 @@
-import { WeaviateFile } from '.src/main';
+
 import {
     ViewUpdate,
     PluginValue,
     EditorView,
     ViewPlugin
 } from "@codemirror/view";
-import MyPlugin, { SIDE_PANE_HOVER_ID } from "./main"
+import MyPlugin, { SIDE_PANE_HOVER_ID, WeaviateFile } from "./main"
 
 
 export const GetOnNoteViewExtension = (myPlugin: MyPlugin) =>
