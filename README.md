@@ -26,6 +26,9 @@ You can check out [weaviate's install guides](https://weaviate.io/developers/wea
 1. Create a `docker-compose.yml` file with the following content:
 
 ```yaml
+version: '3'
+
+services:
   weaviate-obsidian:
     container_name: weaviate-obsidian
     depends_on:
@@ -41,7 +44,7 @@ You can check out [weaviate's install guides](https://weaviate.io/developers/wea
     ports:
     - 3636:8080
     volumes:
-      - ./data/weaviate-data:/var/lib/weaviate
+      - ./weaviate-data:/var/lib/weaviate
     restart: unless-stopped
     environment:
       TRANSFORMERS_INFERENCE_API: 'http://t2v-transformers-obsidian:8080'
@@ -60,6 +63,7 @@ You can check out [weaviate's install guides](https://weaviate.io/developers/wea
     environment:
       ENABLE_CUDA: '0'
 ```
+here is the full compose file [compose.yml](https://github.com/echo-saurav/obsidian-ai-note-suggestion/blob/main/docker/compose.yml)
 
 2. In the directory where you saved the `docker-compose.yml` file, run the following command
 ```bash
