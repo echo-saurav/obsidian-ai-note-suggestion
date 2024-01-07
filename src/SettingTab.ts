@@ -134,13 +134,24 @@ export class MySettings extends PluginSettingTab {
                     }))
 
         new Setting(containerEl)
+            .setName('Show snippet of notes in Side pane view')
+            .setDesc("If you enable this , Related note's text will be shown")
+            .addToggle(
+                t => t
+                    .setValue(this.plugin.settings.showContent)
+                    .onChange(async v => {
+                        this.plugin.settings.showContent = v;
+                        await this.plugin.saveSettings();
+                    }))
+
+        new Setting(containerEl)
             .setName('Cached search')
             .setDesc('Cached search result for faster showing files')
             .addToggle(
                 t => t
                     .setValue(this.plugin.settings.cacheSearch)
                     .onChange(async v => {
-                        this.plugin.settings.cacheSearch= v;
+                        this.plugin.settings.cacheSearch = v;
                         await this.plugin.saveSettings();
                     }))
 

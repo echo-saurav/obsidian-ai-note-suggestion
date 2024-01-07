@@ -36,6 +36,12 @@
     font-style: italic;
 }
 
+.side_pane_item .file_content{
+    white-space: initial;
+    margin: 0;
+    font-size: 13px;
+}
+
 .side_pane_item:hover {
     background: var(--background-modifier-hover);
     border-radius: 5px;

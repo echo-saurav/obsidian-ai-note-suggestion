@@ -15,7 +15,8 @@ const DEFAULT_SETTINGS: AINoteSuggestionSettings = {
     showPercentageOnCodeQuery: false,
     autoCut: 0,
     distanceLimit: 0,
-    cacheSearch: false
+    cacheSearch: false,
+    showContent: true
 }
 
 interface AINoteSuggestionSettings {
@@ -27,6 +28,7 @@ interface AINoteSuggestionSettings {
     autoCut: number
     distanceLimit: number
     cacheSearch: boolean
+    showContent: boolean
 }
 export interface WeaviateFile {
     content: string

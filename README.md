@@ -110,8 +110,9 @@ autoCut: 2
 - [x] Similar notes inside note
 - [x] add autocut settings and yaml code
 - [x] add distance threshold on settings and yaml code
+- [x] add a search command to search by similar text
+- [x] cached search result for faster query
 - [ ] Split notes by regex and upload splits note in vector for long notes
-- [ ] add a search command to search by similar text
 - [ ] show status on every events (update,sync etc)
 
 

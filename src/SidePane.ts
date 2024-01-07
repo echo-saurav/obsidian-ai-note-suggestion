@@ -1,10 +1,10 @@
-import { ItemView, MarkdownView, WorkspaceLeaf } from "obsidian";
+import { ItemView, MarkdownView, TFile, WorkspaceLeaf } from "obsidian";
 import MyPlugin, { SIDE_PANE_HOVER_ID, WeaviateFile } from "./main";
 export const SIDE_PANE_VIEW_TYPE = "similar-notes";
 
 export class SidePane extends ItemView {
     listEl: HTMLElement;
-    itemElement:HTMLElement
+    itemElement: HTMLElement
     leaf: WorkspaceLeaf;
     myPlugin: MyPlugin;
 
@@ -47,7 +47,7 @@ export class SidePane extends ItemView {
 
     }
 
-    async updateView() { 
+    async updateView() {
         if (!this.listEl) return
         const currentFile = this.myPlugin.getCurrentOpenedFile()
 
@@ -87,12 +87,27 @@ export class SidePane extends ItemView {
         // const opacity_val = parseFloat(file_similarity) * .01
         // itemElement.style.opacity = `${opacity_val}`
 
-        
-        const itemElement = this.itemElement.createEl("div", { cls: "side_pane_item" })
-        
 
+        const itemElement = this.itemElement.createEl("div", { cls: "side_pane_item" })
 
         itemElement.createEl("p", { text: file_name, cls: "file_name" })
+        
+        if(this.myPlugin.settings.showContent){
+            const localFile = this.myPlugin.app.vault.getAbstractFileByPath(file.path)
+
+            if (localFile instanceof TFile) {
+                this.myPlugin.app.vault.cachedRead(localFile).then(content => {
+                    const clean = this.myPlugin.vectorServer.getCleanDoc(content)
+                    if(clean.length>200){
+                        itemElement.createEl("p", { text: clean.slice(0,200) ,cls: "file_content"})
+                    }else{
+                        itemElement.createEl("p", { text: clean ,cls: "file_content"})
+                    }
+                    itemElement.createEl("p", { text: file_similarity, cls: "file_percent" })
+                })
+            }
+        }
+
         itemElement.createEl("p", { text: file_similarity, cls: "file_percent" })
 
         // click event
