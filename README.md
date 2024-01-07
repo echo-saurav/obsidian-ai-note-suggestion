@@ -92,7 +92,6 @@ This is a simple code blocks for querying similar notes based on given texts
 ~~~markdown
 ```match
 text: one
-showPercentage: true
 limit: 10
 distanceLimit: .98
 autoCut: 2
