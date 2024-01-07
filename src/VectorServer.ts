@@ -93,7 +93,7 @@ export default class VectorServer {
         }
 
         result.withLimit(limit)
-            .withFields('filename path _additional { distance }')
+            .withFields('filename path content _additional { distance }')
         // .do()
         // .catch(e => { })
         const response = await result
@@ -313,6 +313,18 @@ export default class VectorServer {
     //     return classDefinition
     // }
 
+    async splitAddNew(content: string, path: string, filename: string, mtime: number) {
+        const cleanContent = this.getCleanDoc(content)
+        const tags = this.getAllTags(content)
+        const metadata = this.extractYAMLWithoutDashes(content)
+
+        const noteParts = cleanContent.split("\n")
+
+        await Promise.all( noteParts.map(async part=>{
+            console.log("part",part)
+            await this.addNew(part,path,filename,mtime)
+        }))
+    }
 
     async addNew(content: string, path: string, filename: string, mtime: number) {
 
@@ -325,16 +337,30 @@ export default class VectorServer {
             mtime: this.unixTimestampToRFC3339(mtime)
         }
 
-        const note_id = generateUuid5(path)
+        // const note_id = generateUuid5(path)
 
         // console.log"add new note: " + filename + " time:" + this.unixTimestampToRFC3339(mtime))
         return this.client.data
             .creator()
             .withClassName(this.weaviateClass)
             .withProperties(dataObj)
-            .withId(note_id)
+            // .withId(note_id)
             .do()
             .catch(e => { })
+    }
+
+    async splitUpdate(content: string, path: string, filename: string, mtime: number){
+        const cleanContent = this.getCleanDoc(content)
+        const tags = this.getAllTags(content)
+        const metadata = this.extractYAMLWithoutDashes(content)
+
+        const noteParts = cleanContent.split("\n")
+
+        noteParts.map(async part=>{
+            if(part.trim()){
+                await this.onUpdateFile(part,path,filename,mtime)
+            }
+        })
     }
 
     // update notes if needed , add new if not exist in weaviate database
@@ -433,7 +459,8 @@ export default class VectorServer {
         await Promise.all(files.map(async (f, index) => {
             // console.log("add new file", f)
             const content = await this.plugin.app.vault.cachedRead(f);
-            await this.addNew(content, f.path, f.basename, f.stat.mtime);
+            await this.splitAddNew(content, f.path, f.basename, f.stat.mtime);
+            // await this.addNew(content, f.path, f.basename, f.stat.mtime);
             i = i + 1;
         }));
 

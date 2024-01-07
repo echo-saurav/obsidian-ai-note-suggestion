@@ -91,21 +91,27 @@ export class SidePane extends ItemView {
         const itemElement = this.itemElement.createEl("div", { cls: "side_pane_item" })
 
         itemElement.createEl("p", { text: file_name, cls: "file_name" })
-        
-        if(this.myPlugin.settings.showContent){
-            const localFile = this.myPlugin.app.vault.getAbstractFileByPath(file.path)
 
-            if (localFile instanceof TFile) {
-                this.myPlugin.app.vault.cachedRead(localFile).then(content => {
-                    const clean = this.myPlugin.vectorServer.getCleanDoc(content)
-                    if(clean.length>200){
-                        itemElement.createEl("p", { text: clean.slice(0,200) ,cls: "file_content"})
-                    }else{
-                        itemElement.createEl("p", { text: clean ,cls: "file_content"})
-                    }
-                    itemElement.createEl("p", { text: file_similarity, cls: "file_percent" })
-                })
+        if(this.myPlugin.settings.showContent){
+            if(file.content.length>200){
+                itemElement.createEl("p", { text: file.content.slice(0,200) ,cls: "file_content"})
+            }else{
+                itemElement.createEl("p", { text: file.content ,cls: "file_content"})
             }
+            itemElement.createEl("p", { text: file_similarity, cls: "file_percent" })
+            // const localFile = this.myPlugin.app.vault.getAbstractFileByPath(file.path)
+
+            // if (localFile instanceof TFile) {
+            //     this.myPlugin.app.vault.cachedRead(localFile).then(content => {
+            //         const clean = this.myPlugin.vectorServer.getCleanDoc(content)
+            //         if(clean.length>200){
+            //             itemElement.createEl("p", { text: clean.slice(0,200) ,cls: "file_content"})
+            //         }else{
+            //             itemElement.createEl("p", { text: clean ,cls: "file_content"})
+            //         }
+            //         itemElement.createEl("p", { text: file_similarity, cls: "file_percent" })
+            //     })
+            // }
         }
 
         itemElement.createEl("p", { text: file_similarity, cls: "file_percent" })

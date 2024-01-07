@@ -139,7 +139,8 @@ export default class AINoteSuggestionPlugin extends Plugin {
             files.map(async (file, index) => {
                 const content = await this.app.vault.cachedRead(file)
                 if (content) {
-                    await this.vectorServer.onUpdateFile(content, file.path, file.basename, file.stat.mtime)
+                    await this.vectorServer.splitUpdate(content, file.path, file.basename, file.stat.mtime)                    
+                    // await this.vectorServer.onUpdateFile(content, file.path, file.basename, file.stat.mtime)
                     // // // console.log"update file", file)
                 }
 
