@@ -21,7 +21,7 @@
     padding: 5px 5px;
     text-overflow: ellipsis;
     white-space: nowrap;
-    overflow: hidden;
+    /* overflow: hidden; */
 }
 
 .side_pane_item .file_name {
@@ -36,7 +36,7 @@
     font-style: italic;
 }
 
-.side_pane_item .file_content{
+.side_pane_item .file_content {
     white-space: initial;
     margin: 0;
     font-size: 13px;
@@ -53,37 +53,55 @@
     padding: 10px;
     min-height: 50px;
     overflow-x: scroll;
-    white-space: nowrap;
     padding-bottom: 15px;
     max-width: var(--file-line-width);
+    
+    background: gray;
+
 }
+
+.on_note_suggestion_list{
+    display: flex;
+    align-items: flex-start;
+    background: red;
+}
+
 
 #on_note_suggestions::-webkit-scrollbar {
     display: none;
 }
 
 .on_note_suggestions_item {
-    display: inline;
+    width: 200px;
+    display: inline-block;
+    padding: 5px;
     margin: 5px;
-    color: var(--color-accent-1);
+}
+
+.on_note_suggestions_item p {
+    /* display: inline; */
+    /* white-space: nowrap; */
+    white-space: initial;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--font-smallest);
 }
 
 .on_note_suggestions_item a {
     display: inline;
     margin: 0px;
-    color: var(--text-muted);
+    color: var(--color-accent-1);
     font-weight: bold;
+    font-size: var(--font-small);
 }
-.cached_item{
+
+.cached_item {
     opacity: .9;
 }
 
 /* code block style */
-.suggestion_code{
-    margin-top: 5px;    
+.suggestion_code {
+    margin-top: 5px;
 }
 
-.suggestion_code li{
-
-}
-
+.suggestion_code li {}

@@ -28,9 +28,13 @@ export const GetOnNoteViewExtension = (myPlugin: MyPlugin) =>
             // create a note suggestion element at top
             const parent = view.dom.querySelector(".cm-sizer")
             const addTextBeforeThis = view.dom.querySelector(".cm-contentContainer");
-
-            this.el = document.createElement("div")
-            this.el.id = "on_note_suggestions"
+            
+            // this.el = document.createElement("div")
+            // this.el.id = "on_note_suggestions"
+            const parentContainer = document.createElement("div")
+            parentContainer.id = "on_note_suggestions"
+            this.el = parentContainer.createEl('div', {cls:"on_note_suggestion_list"})
+            
 
 
             if (addTextBeforeThis) {
@@ -74,7 +78,7 @@ export const GetOnNoteViewExtension = (myPlugin: MyPlugin) =>
             this.el.empty()
             const cachedFiles = await myPlugin.vectorServer.getCachedNoteList(currentFile)
             cachedFiles.map(cacheFile => {
-                this.populateItem(cacheFile,true)
+                this.populateItem(cacheFile, true)
             })
 
 
@@ -104,10 +108,15 @@ export const GetOnNoteViewExtension = (myPlugin: MyPlugin) =>
             // itemElement.style.opacity = `${opacity_val}`
 
             if (isCached) {
+                const item = this.el.createDiv({ cls: "on_note_suggestions_item" })
 
-                const itemElement = this.el.createEl("a",
+                // const itemElement = this.el.createEl("a",
+                //     { "text": file_name, "href": file.path, cls: ["on_note_suggestions_item", "cached_item"] }
+                // )
+                const itemElement = item.createEl("a",
                     { "text": file_name, "href": file.path, cls: ["on_note_suggestions_item", "cached_item"] }
                 )
+
 
                 itemElement.addEventListener('click', (event: MouseEvent) => {
                     myPlugin.focusFile(file.path, null)
@@ -125,20 +134,34 @@ export const GetOnNoteViewExtension = (myPlugin: MyPlugin) =>
                 })
 
             } else {
-                const itemElement = this.el.createEl("a",
-                    { "text": file_name, "href": file.path, cls: "on_note_suggestions_item" }
-                )
 
-                itemElement.addEventListener('click', (event: MouseEvent) => {
+                const item = this.el.createDiv()
+                item.addClasses(["on_note_suggestions_item"])
+                item.createEl('a', { text: file_name, href: file.path })
+                item.createEl('p', { text: file.content })
+
+                // const item = this.el.createDiv({ cls: "on_note_suggestions_item" })
+
+
+                // // const itemElement = this.el.createEl("a",
+                // //     { "text": file_name, "href": file.path, cls: ["on_note_suggestions_item", "cached_item"] }
+                // // )
+
+                // const itemElement = item.createEl("a",
+                //     { "text": file_name, "href": file.path, cls: ["on_note_suggestions_item", "cached_item"] }
+                // )
+                // item.createEl('p', { text: "hello this is new" })
+
+                item.addEventListener('click', (event: MouseEvent) => {
                     myPlugin.focusFile(file.path, null)
                 });
 
-                itemElement.addEventListener('mouseenter', (event) => {
+                item.addEventListener('mouseenter', (event) => {
                     myPlugin.app.workspace.trigger("hover-link", {
                         source: SIDE_PANE_HOVER_ID,
                         event: event,
-                        hoverParent: itemElement.parentElement,
-                        targetEl: itemElement,
+                        hoverParent: item.parentElement,
+                        targetEl: item,
                         linktext: file_name,
                         sourcePath: file.path
                     })
