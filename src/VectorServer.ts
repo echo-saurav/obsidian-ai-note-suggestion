@@ -3,6 +3,9 @@ import weaviate, { WeaviateClient, generateUuid5 } from 'weaviate-ts-client';
 import MyPlugin, { WeaviateFile } from './main';
 import { Notice, TFile, parseYaml } from 'obsidian';
 
+interface LocalQuery {
+    files: Array<{ files: Array<WeaviateFile>; filePath: string }>;
+}
 
 export default class VectorServer {
     private client: WeaviateClient
@@ -10,6 +13,7 @@ export default class VectorServer {
     private weaviateAddress: string
     private weaviateClass: string
     private limit: number
+    private dbFileName: string
 
 
     constructor(weaviateAddress: string, weaviateClass: string, limit: number, plugin: MyPlugin) {
@@ -17,12 +21,12 @@ export default class VectorServer {
         this.weaviateClass = weaviateClass
         this.limit = limit
         this.plugin = plugin
-
         this.client = weaviate.client(this.getWeaviateConf(weaviateAddress))
-
+        this.dbFileName = '.obsidian/plugins/obsidian-ai-note-suggestion/db.json'
     }
 
-    async getSearchModalQueryNoteList(text:string){
+
+    async getSearchModalQueryNoteList(text: string) {
         return this.queryText(text,
             [],
             this.plugin.settings.limit,
@@ -65,11 +69,11 @@ export default class VectorServer {
 
 
     async queryText(text: string, tags: string[], limit: number, distanceLimit: number, autoCut: number) {
-        console.log(`auto cut: ${autoCut}, dis: ${distanceLimit}`)
         let nearText: { concepts: string[], distance?: number } = { concepts: [text] };
+        // console.log(`query text: ${text.trim()}, tags: ${tags} , limit: ${limit} ,dis: ${distanceLimit}, autoCut: ${autoCut}`)
 
         if (distanceLimit > 0) {
-            nearText = { concepts: [text], distance: distanceLimit }
+            nearText = { concepts: [text.trim()], distance: distanceLimit }
         }
 
         const result = await this.client.graphql
@@ -94,16 +98,21 @@ export default class VectorServer {
         // .catch(e => { })
         const response = await result
             .do()
-            .catch(e => { })
+            .catch(e => {  })
+            // .catch(e => { console.log("error query", e) })
 
         return response
     }
 
+    splitText(content: string) {
+        return content.split("\n")
+    }
 
     convertToSimilarPercentage(cosine: number) {
         const percentage = ((50 * cosine) - 100) * -1;
         return percentage.toFixed(2) + "%";
     }
+
     async queryWithNoteId(filePath: string, limit: number, distanceLimit: number, autoCut: number) {
         const note_id = generateUuid5(filePath)
 
@@ -143,7 +152,7 @@ export default class VectorServer {
         } else {
             host = weaviateAddress.slice(8); // Remove the first 8 characters (https://:)
         }
-        console.log(`host ${host}, scheme ${scheme}`)
+        // console.log`host ${host}, scheme ${scheme}`)
         return {
             host: host,
             scheme: scheme
@@ -173,7 +182,7 @@ export default class VectorServer {
                 .classCreator()
                 .withClass(this.getDefaultClassDefinition())
                 .do()
-            console.log("create class", JSON.stringify(result, null, 2));
+            // console.log"create class", JSON.stringify(result, null, 2));
         }
         return classExist
     }
@@ -186,81 +195,124 @@ export default class VectorServer {
                 {
                     "name": "content",
                     "datatype": ["text"],
-                    "moduleConfig": {
-                        "text2vec-transformers": {
-                            "skip": false,
-                            "vectorizePropertyName": false
-                        }
-                    }
                 },
                 {
                     "name": "metadata",
                     "datatype": ["text"],
-                    "moduleConfig": {
-                        "text2vec-transformers": {
-                            "skip": false,
-                            "vectorizePropertyName": false
-                        }
-                    }
                 },
                 {
                     "name": "type",
                     "datatype": ["text"],
-                    "moduleConfig": {
-                        "text2vec-transformers": {
-                            "skip": false,
-                            "vectorizePropertyName": false
-                        }
-                    }
                 },
                 {
                     "name": "tags",
                     "datatype": ["text[]"],
-                    "moduleConfig": {
-                        "text2vec-transformers": {
-                            "skip": false,
-                            "vectorizePropertyName": false
-                        }
-                    }
                 },
 
                 {
                     "name": "path",
                     "datatype": ["text"],
-                    "moduleConfig": {
-                        "text2vec-transformers": {
-                            "skip": true,
-                            "vectorizePropertyName": false
-                        }
-                    }
                 },
                 {
                     "name": "filename",
                     "datatype": ["text"],
-                    "moduleConfig": {
-                        "text2vec-transformers": {
-                            "skip": false,
-                            "vectorizePropertyName": false
-                        }
-                    }
+
                 },
                 {
                     "name": "mtime",
                     "datatype": ["date"],
-                    "moduleConfig": {
-                        "text2vec-transformers": {
-                            "skip": false,
-                            "vectorizePropertyName": false
-                        }
-                    }
                 },
 
             ],
-            "vectorizer": "text2vec-transformers"
         };
 
         return classDefinition
     }
+
+    // getDefaultClassDefinition() {
+
+    //     const classDefinition = {
+    //         class: this.weaviateClass,
+    //         properties: [
+    //             {
+    //                 "name": "content",
+    //                 "datatype": ["text"],
+    //                 "moduleConfig": {
+    //                     "text2vec-transformers": {
+    //                         "skip": false,
+    //                         "vectorizePropertyName": false
+    //                     }
+    //                 }
+    //             },
+    //             {
+    //                 "name": "metadata",
+    //                 "datatype": ["text"],
+    //                 "moduleConfig": {
+    //                     "text2vec-transformers": {
+    //                         "skip": false,
+    //                         "vectorizePropertyName": false
+    //                     }
+    //                 }
+    //             },
+    //             {
+    //                 "name": "type",
+    //                 "datatype": ["text"],
+    //                 "moduleConfig": {
+    //                     "text2vec-transformers": {
+    //                         "skip": false,
+    //                         "vectorizePropertyName": false
+    //                     }
+    //                 }
+    //             },
+    //             {
+    //                 "name": "tags",
+    //                 "datatype": ["text[]"],
+    //                 "moduleConfig": {
+    //                     "text2vec-transformers": {
+    //                         "skip": false,
+    //                         "vectorizePropertyName": false
+    //                     }
+    //                 }
+    //             },
+
+    //             {
+    //                 "name": "path",
+    //                 "datatype": ["text"],
+    //                 "moduleConfig": {
+    //                     "text2vec-transformers": {
+    //                         "skip": true,
+    //                         "vectorizePropertyName": false
+    //                     }
+    //                 }
+    //             },
+    //             {
+    //                 "name": "filename",
+    //                 "datatype": ["text"],
+    //                 "moduleConfig": {
+    //                     "text2vec-transformers": {
+    //                         "skip": false,
+    //                         "vectorizePropertyName": false
+    //                     }
+    //                 }
+    //             },
+    //             {
+    //                 "name": "mtime",
+    //                 "datatype": ["date"],
+    //                 "moduleConfig": {
+    //                     "text2vec-transformers": {
+    //                         "skip": false,
+    //                         "vectorizePropertyName": false
+    //                     }
+    //                 }
+    //             },
+
+    //         ],
+    //         "vectorizer": "text2vec-transformers"
+    //     };
+
+    //     return classDefinition
+    // }
+
 
     async addNew(content: string, path: string, filename: string, mtime: number) {
 
@@ -275,7 +327,7 @@ export default class VectorServer {
 
         const note_id = generateUuid5(path)
 
-        console.log("add new note: " + filename + " time:" + this.unixTimestampToRFC3339(mtime))
+        // console.log"add new note: " + filename + " time:" + this.unixTimestampToRFC3339(mtime))
         return this.client.data
             .creator()
             .withClassName(this.weaviateClass)
@@ -308,7 +360,7 @@ export default class VectorServer {
                 mtime: this.unixTimestampToRFC3339(mtime)
             }
 
-            console.log("newValue", newValue)
+            // console.log"newValue", newValue)
 
             await this.client.data
                 .merger()  // merges properties into the object
@@ -316,9 +368,9 @@ export default class VectorServer {
                 .withProperties(newValue)
                 .do();
 
-            console.log("update note: " + filename + " time:" + this.unixTimestampToRFC3339(mtime))
+            // console.log"update note: " + filename + " time:" + this.unixTimestampToRFC3339(mtime))
         } else if (!doesExist && isUpdated) {
-            console.log("adding " + path)
+            // console.log"adding " + path)
             this.addNew(content, path, filename, mtime)
         }
     }
@@ -348,7 +400,7 @@ export default class VectorServer {
             .withClassName(this.weaviateClass)
             .withFields('meta { count }')
             .do();
-        console.log("count", response)
+        // console.log("count", response)
         const count = response.data["Aggregate"][this.weaviateClass][0]["meta"]["count"]
         return count
     }
@@ -369,8 +421,8 @@ export default class VectorServer {
 
         new Notice("Delete successful,Rescaning files and adding to database")
 
-        this.initClass().then(() => {
-            this.initialSyncFiles()
+        await this.initClass().then(async () => {
+            await this.initialSyncFiles()
         })
     }
 
@@ -378,13 +430,13 @@ export default class VectorServer {
 
         const files = this.plugin.app.vault.getMarkdownFiles()
         let i = 0
-        await files.map(async (f, index) => {
-            await this.plugin.app.vault.cachedRead(f).then(content => {
-                this.addNew(content, f.path, f.basename, f.stat.mtime)
-                i=i+1
-            });
+        await Promise.all(files.map(async (f, index) => {
+            // console.log("add new file", f)
+            const content = await this.plugin.app.vault.cachedRead(f);
+            await this.addNew(content, f.path, f.basename, f.stat.mtime);
+            i = i + 1;
+        }));
 
-        })
         new Notice("Done rebuilding database")
         new Notice(`Total file added ${i}`)
     }
@@ -489,4 +541,61 @@ export default class VectorServer {
             return []
         }
     }
+
+    async readCache() {
+        let db: LocalQuery = { files: [] }
+
+        if (await this.plugin.app.vault.adapter.exists(this.dbFileName)) {
+            const data = await this.plugin.app.vault.adapter.read(this.dbFileName);
+            db = JSON.parse(data);
+            // console.log("cache db", db)
+            return db.files
+        } else {
+            db.files
+        }
+
+        // const localFiles = db.files
+        // const matchingFile = localFiles.filter(local => local.filePath === file.path)
+        // return matchingFile
+
+    }
+
+    async writeCache(localQuery: LocalQuery) {
+        
+        await this.plugin.app.vault.adapter.write(this.dbFileName, JSON.stringify(localQuery))
+    }
+
+    async addCachedNoteList(file: TFile, queryFiles: WeaviateFile[]) {
+        
+        const localFiles = await this.readCache()
+        if (localFiles) {
+            const removeFile = localFiles?.filter(localFile => file.path !== localFile.filePath)
+            removeFile.push({ filePath: file.path, files: queryFiles })
+            this.writeCache({ files: removeFile })
+            return removeFile
+        } else {
+            this.writeCache({ files: [] })
+        }
+
+    }
+
+    async getCachedNoteList(file: TFile): Promise<WeaviateFile[]> {
+        if (!this.plugin.settings.cacheSearch) return []
+
+        const localFiles = await this.readCache()
+        if (localFiles) {
+            const res = localFiles.filter(localFile => file.path === localFile.filePath)
+            if (res.length > 0) {
+
+                return res[0].files
+            }
+            else return []
+        } else {
+            return []
+        }
+    }
+
+
+
+
 }

@@ -22,7 +22,10 @@ export class MySettings extends PluginSettingTab {
 
         this.plugin.vectorServer.countOnDatabase()
             .then(count => {
-                infoContainer.setDesc(`Total file synced ${count}`)
+                const localFileCount = this.plugin.app.vault.getMarkdownFiles().length
+                infoContainer.setDesc(`Total file synced ${count}/${localFileCount}`)
+            }).catch(error => {
+                infoContainer.setDesc("Error loading info " + error)
             })
 
         new Setting(containerEl)
@@ -39,14 +42,23 @@ export class MySettings extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Class')
-            .setDesc('Weaviate class name')
+            .setDesc('Weaviate class name (Keep the first letter capital. Ex: Obsidian not obsidian ')
             .addText(text => text
                 .setPlaceholder('ex: Obsidian')
                 .setValue(this.plugin.settings.weaviateClass)
                 .onChange(async (value) => {
-                    this.plugin.settings.weaviateClass = value
-                    await this.plugin.saveSettings()
-                    this.plugin.scanVault()
+
+                    if (value) {
+                        // make the first letter capital 
+                        const class_name = value[0].toUpperCase() + value.substring(1)
+                        text.setValue(class_name)
+
+                        this.plugin.settings.weaviateClass = class_name
+                        await this.plugin.saveSettings()
+                        this.plugin.scanVault()
+
+                    }
+
                 }));
 
         new Setting(containerEl)
@@ -110,8 +122,6 @@ export class MySettings extends PluginSettingTab {
         //                 await this.plugin.saveSettings();
         //             }))
 
-
-
         new Setting(containerEl)
             .setName('Show similar notes on top')
             .setDesc('If you enable this , plugin will show related notes on top of the current note')
@@ -123,6 +133,16 @@ export class MySettings extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     }))
 
+        new Setting(containerEl)
+            .setName('Cached search')
+            .setDesc('Cached search result for faster showing files')
+            .addToggle(
+                t => t
+                    .setValue(this.plugin.settings.cacheSearch)
+                    .onChange(async v => {
+                        this.plugin.settings.cacheSearch= v;
+                        await this.plugin.saveSettings();
+                    }))
 
 
         new Setting(containerEl)
@@ -130,12 +150,12 @@ export class MySettings extends PluginSettingTab {
             .setDesc('Remove everything from weaviate and rebuild, it only delete files from database, nothing will be delete from obsidian')
             .addButton(btn => btn
                 .setButtonText("Delete all")
-                .onClick(() => {
+                .onClick(async () => {
                     new Notice("Deleting everything. Please wait")
-                    this.plugin.vectorServer.deleteAll()
+                    await this.plugin.vectorServer.deleteAll()
                         .catch((e) => {
                             new Notice("Error Deleting, could not delete")
-                            console.log(e)
+                            // console.log(e)
                         })
                 })
             )

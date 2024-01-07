@@ -22,3 +22,7 @@ data.json
 .DS_Store
 
 package-lock.json
+
+db.json
+vectors
+docker/weaviate-data

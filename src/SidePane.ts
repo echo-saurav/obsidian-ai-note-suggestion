@@ -4,6 +4,7 @@ export const SIDE_PANE_VIEW_TYPE = "similar-notes";
 
 export class SidePane extends ItemView {
     listEl: HTMLElement;
+    itemElement:HTMLElement
     leaf: WorkspaceLeaf;
     myPlugin: MyPlugin;
 
@@ -14,6 +15,7 @@ export class SidePane extends ItemView {
 
         const container = this.containerEl.children[1];
         this.listEl = container.createDiv()
+        this.itemElement = container.createEl("div", { cls: "side_pane_list" })
     }
 
 
@@ -45,61 +47,68 @@ export class SidePane extends ItemView {
 
     }
 
-    async updateView() {
+    async updateView() { 
         if (!this.listEl) return
-
         const currentFile = this.myPlugin.getCurrentOpenedFile()
+
         if (!currentFile) return
+        this.listEl.empty()
+        // set heading
+        const heading = this.listEl.createEl('div', { cls: "side_pane" })
+        heading.createEl("h5", { text: "Related notes for", cls: "side_pane_heading" })
+        heading.createEl("p", { text: currentFile?.basename, cls: "side_pane_path" })
 
-
-        
+        const cachedFiles = await this.myPlugin.vectorServer.getCachedNoteList(currentFile)
+        this.itemElement.empty()
+        cachedFiles.map(cacheFile => {
+            this.populateItem(cacheFile)
+        })
 
         this.myPlugin.vectorServer.getExtensionNoteList(currentFile)
-        .then((similarFiles) => {
-            if (!similarFiles) return
+            .then((similarFiles) => {
+                if (!similarFiles) return
 
 
-            const fileFromDatabase: WeaviateFile[] = similarFiles['data']['Get'][this.myPlugin.settings.weaviateClass]
-            const cleanFileList: WeaviateFile[] = fileFromDatabase.filter(item => currentFile.path && currentFile.path != item.path)
+                const fileFromDatabase: WeaviateFile[] = similarFiles['data']['Get'][this.myPlugin.settings.weaviateClass]
+                const cleanFileList: WeaviateFile[] = fileFromDatabase.filter(item => currentFile.path && currentFile.path != item.path)
 
-            console.log("clean", cleanFileList.length)
-
-            this.listEl.empty()
-            // set heading
-            const heading = this.listEl.createEl('div',{cls:"ai_heading"})
-            heading.createEl("h5",{text:"Related notes for",cls:"ai_title"})
-            heading.createEl("p",{text:currentFile?.basename,cls:"ai_title_path"})
-
-            cleanFileList.map((file) => {
-                const file_name = file.filename
-                const file_similarity = this.myPlugin.vectorServer.convertToSimilarPercentage(file._additional.distance)
-                const opacity_val = parseFloat(file_similarity) * .01
-
-
-                const itemElement = this.listEl.createEl("div", { cls: "ai_note_side_pane" })
-
-                itemElement.createEl("p", { text: file_name, cls: "file_name" })
-                itemElement.createEl("p", { text: file_similarity, cls: "file_percent" })
-                itemElement.style.opacity = `${opacity_val}`
-                // click event
-                itemElement.addEventListener('click', () => {
-                    this.myPlugin.focusFile(file.path, null)
+                this.itemElement.empty()
+                cleanFileList.map((file) => {
+                    this.populateItem(file)
                 })
-    
-                itemElement.addEventListener('mouseenter',(event)=>{
-                    this.myPlugin.app.workspace.trigger("hover-link",{
-                        source: SIDE_PANE_HOVER_ID,
-                        event:event,
-                        hoverParent: itemElement.parentElement,
-                        targetEl: itemElement,
-                        linktext: file.filename,
-                        sourcePath: file.path
-                    })
-                })
+
 
             })
+    }
+
+    populateItem(file: WeaviateFile) {
+        const file_name = file.filename
+        const file_similarity = this.myPlugin.vectorServer.convertToSimilarPercentage(file._additional.distance)
+        // const opacity_val = parseFloat(file_similarity) * .01
+        // itemElement.style.opacity = `${opacity_val}`
+
+        
+        const itemElement = this.itemElement.createEl("div", { cls: "side_pane_item" })
+        
 
 
+        itemElement.createEl("p", { text: file_name, cls: "file_name" })
+        itemElement.createEl("p", { text: file_similarity, cls: "file_percent" })
+
+        // click event
+        itemElement.addEventListener('click', () => {
+            this.myPlugin.focusFile(file.path, null)
+        })
+
+        itemElement.addEventListener('mouseenter', (event) => {
+            this.myPlugin.app.workspace.trigger("hover-link", {
+                source: SIDE_PANE_HOVER_ID,
+                event: event,
+                hoverParent: itemElement.parentElement,
+                targetEl: itemElement,
+                linktext: file.filename,
+                sourcePath: file.path
+            })
         })
     }
 
@@ -110,7 +119,7 @@ export class SidePane extends ItemView {
     }
     async onClose() {
         // Nothing to clean up.
-        console.log("close side pane")
+        // console.log"close side pane")
 
     }
 

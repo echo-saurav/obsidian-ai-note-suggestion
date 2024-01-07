@@ -1,4 +1,4 @@
-import { MarkdownPostProcessorContext, MarkdownView, parseYaml } from "obsidian";
+import { MarkdownPostProcessorContext, parseYaml } from "obsidian";
 import MyPlugin, { CODE_HOVER_ID, WeaviateFile } from "./main";
 
 interface CodeYaml {
@@ -12,6 +12,30 @@ interface CodeYaml {
 
 export const GetSearchCodeBlock = (myPlugin: MyPlugin) => {
 
+    function populateItem(file: WeaviateFile, listEl: HTMLElement) {
+        const i = listEl.createEl("li")
+
+        const itemElement = i.createEl("a", {
+            "text": file.filename,
+            "href": file.path
+        })
+
+        itemElement.addEventListener('click', (event: MouseEvent) => {
+            myPlugin.focusFile(file.path, null)
+        });
+
+        itemElement.addEventListener('mouseenter', (event) => {
+            myPlugin.app.workspace.trigger("hover-link", {
+                source: CODE_HOVER_ID,
+                event: event,
+                hoverParent: itemElement.parentElement,
+                targetEl: itemElement,
+                linktext: file.filename,
+                sourcePath: file.path
+            })
+        })
+    }
+
 
     return (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
         const codeYaml: CodeYaml = parseYaml(source)
@@ -20,48 +44,36 @@ export const GetSearchCodeBlock = (myPlugin: MyPlugin) => {
         const limit = codeYaml.limit ? codeYaml.limit : myPlugin.settings.limit
         const yamlAutoCut = codeYaml.autoCut != null ? codeYaml.autoCut : myPlugin.settings.autoCut
         const yamlDistanceLimit = codeYaml.distanceLimit != null ? codeYaml.distanceLimit : myPlugin.settings.distanceLimit
-        const showPercentage = codeYaml.showPercentage ? codeYaml.showPercentage : myPlugin.settings.showPercentageOnCodeQuery   
+        const showPercentage = codeYaml.showPercentage ? codeYaml.showPercentage : myPlugin.settings.showPercentageOnCodeQuery
 
-        
-        myPlugin.vectorServer.getCodeBlockNoteList(text,tags,limit,yamlDistanceLimit,yamlAutoCut)
-        .then((similarFiles) => {
-            if (!similarFiles) return
-            
-            const fileFromDatabase: WeaviateFile[] = similarFiles['data']['Get'][myPlugin.settings.weaviateClass]
-            const cleanFileList: WeaviateFile[] = fileFromDatabase.filter(item => ctx.sourcePath && ctx.sourcePath != item.path)
+        el.createEl('small', { text: "AI Note suggestion: loading...", cls: "empty_match" })
 
-            if(cleanFileList){
 
-                const listEl = el.createEl('ul', { cls: "similar_list_parent" })
+        myPlugin.vectorServer.getCodeBlockNoteList(text, tags, limit, yamlDistanceLimit, yamlAutoCut)
+            .then((similarFiles) => {
 
-                cleanFileList.map((file) => {
-                    const i = listEl.createEl("li")
+                if (!similarFiles) return
+                
+                const fileFromDatabase: WeaviateFile[] = similarFiles['data']['Get'][myPlugin.settings.weaviateClass]
+                const cleanFileList: WeaviateFile[] = fileFromDatabase.filter(item => ctx.sourcePath && ctx.sourcePath != item.path)
 
-                    const itemElement = i.createEl("a", {
-                        "text": file.filename,
-                        "href": file.path
+                if (cleanFileList) {
+                    el.empty()
+
+                    const listEl = el.createEl('ul', { cls: "suggestion_code" })
+
+                    cleanFileList.map((file) => {
+                        populateItem(file, listEl)
                     })
-        
-                    itemElement.addEventListener('click', (event: MouseEvent) => {
-                        myPlugin.focusFile(file.path, 'tab')
-                    });
-        
-                    itemElement.addEventListener('mouseenter',(event)=>{
-                        myPlugin.app.workspace.trigger("hover-link",{
-                            source: CODE_HOVER_ID,
-                            event:event,
-                            hoverParent: itemElement.parentElement,
-                            targetEl: itemElement,
-                            linktext: file.filename,
-                            sourcePath: file.path
-                        })
-                    })
-          
-                })
 
-            }else{
-                el.createEl('small', { text: "AI Note suggestion: No file matches!", cls: "empty_match" })   
-            }
-        })
+                } else {
+                    el.createEl('small', { text: "AI Note suggestion: No file matches!", cls: "empty_match" })
+                }
+            })
+            .catch(e => {
+                el.createEl('small', { text: "AI Note suggestion: error matching file!", cls: "empty_match" })
+            })
+
+
     }
 }

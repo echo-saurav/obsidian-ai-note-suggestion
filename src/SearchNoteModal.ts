@@ -8,7 +8,6 @@ export class SearchNoteModal extends SuggestModal<WeaviateFile> {
   constructor(myPlugin:MyPlugin) {
     super(myPlugin.app)
     this.myPlugin=myPlugin
-
   }
 
   // Returns all available suggestions.
