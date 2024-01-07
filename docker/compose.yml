@@ -20,20 +20,24 @@ services:
       - ./weaviate-data:/var/lib/weaviate
     restart: unless-stopped
     environment:
-      DISK_USE_READONLY_PERCENTAGE: 95 # use this if you have used your storage more then 80%. weaviate go read only mode if you have used more then 80% storage used 
+      # use this if you have used your storage more then 80%. weaviate go read only mode if you have used more then 80% storage used 
+      DISK_USE_READONLY_PERCENTAGE: 95 
       DISK_USE_WARNING_PERCENTAGE: 90
       QUERY_DEFAULTS_LIMIT: 25
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
       CLUSTER_HOSTNAME: 'node1'
+      # If you want to use t2v-transformers vectorize module, uncomment these line
       # TRANSFORMERS_INFERENCE_API: 'http://t2v-transformers-obsidian:8080'
       # DEFAULT_VECTORIZER_MODULE: 'text2vec-transformers'
       # ENABLE_MODULES: 'text2vec-transformers'
+      # Keep these environment variable if you want to use contextionary vectorize module 
       CONTEXTIONARY_URL: contextionary:9999
       DEFAULT_VECTORIZER_MODULE: 'text2vec-contextionary'
-	  ENABLE_MODULES: 'text2vec-contextionary'
+      ENABLE_MODULES: 'text2vec-contextionary'
 
 
+  # If you want to use t2v-transformers vectorize module, use this and remove contextionary bellow
   # t2v-transformers-obsidian:
   #   container_name: t2v-transformers-obsidian
   #   image: semitechnologies/transformers-inference:sentence-transformers-multi-qa-MiniLM-L6-cos-v1
@@ -44,15 +48,16 @@ services:
   # for light weight model (preferable if you are using cpu)
   contextionary:
     container_name: contextionary-obsidian
+    image: semitechnologies/contextionary:en0.16.0-v1.2.1
+    ports:
+      - 9999:9999
     environment:
       OCCURRENCE_WEIGHT_LINEAR_FACTOR: 0.75
       EXTENSIONS_STORAGE_MODE: weaviate
       EXTENSIONS_STORAGE_ORIGIN: http://weaviate-obsidian:8080
       NEIGHBOR_OCCURRENCE_IGNORE_PERCENTILE: 5
       ENABLE_COMPOUND_SPLITTING: 'false'
-    image: semitechnologies/contextionary:en0.16.0-v1.2.1
-    ports:
-    - 9999:9999
+
 
 
 
