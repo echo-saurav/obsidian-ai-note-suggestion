@@ -32,7 +32,8 @@ services:
   weaviate-obsidian:
     container_name: weaviate-obsidian
     depends_on:
-      - t2v-transformers-obsidian
+      # - t2v-transformers-obsidian
+      - contextionary
     command:
     - --host
     - 0.0.0.0
@@ -47,23 +48,28 @@ services:
       - ./weaviate-data:/var/lib/weaviate
     restart: unless-stopped
     environment:
-      TRANSFORMERS_INFERENCE_API: 'http://t2v-transformers-obsidian:8080'
       QUERY_DEFAULTS_LIMIT: 25
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
-      DEFAULT_VECTORIZER_MODULE: 'text2vec-transformers'
-      ENABLE_MODULES: 'text2vec-transformers'
       CLUSTER_HOSTNAME: 'node1'
+      CONTEXTIONARY_URL: contextionary:9999
+      ENABLE_MODULES: 'text2vec-contextionary'
+      DEFAULT_VECTORIZER_MODULE: 'text2vec-contextionary'
 
-
-  t2v-transformers-obsidian:
-    container_name: t2v-transformers-obsidian
-    image: semitechnologies/transformers-inference:sentence-transformers-multi-qa-MiniLM-L6-cos-v1
-    restart: unless-stopped
+  # for light weight model (preferable if you are using cpu)
+  contextionary:
+    container_name: contextionary-obsidian
     environment:
-      ENABLE_CUDA: '0'
+      OCCURRENCE_WEIGHT_LINEAR_FACTOR: 0.75
+      EXTENSIONS_STORAGE_MODE: weaviate
+      EXTENSIONS_STORAGE_ORIGIN: http://weaviate:8080
+      NEIGHBOR_OCCURRENCE_IGNORE_PERCENTILE: 5
+      ENABLE_COMPOUND_SPLITTING: 'false'
+    image: semitechnologies/contextionary:en0.16.0-v1.2.1
+    ports:
+    - 9999:9999
 ```
-here is the full compose file [compose.yml](https://github.com/echo-saurav/obsidian-ai-note-suggestion/blob/main/docker/compose.yml)
+here is the full compose file with other options [compose.yml](https://github.com/echo-saurav/obsidian-ai-note-suggestion/blob/main/docker/compose.yml)
 
 2. In the directory where you saved the `docker-compose.yml` file, run the following command
 ```bash
